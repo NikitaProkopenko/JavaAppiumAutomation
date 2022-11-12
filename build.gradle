@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation (
+            'junit:junit:4.12',
+            'io.appium:java-client:4.1.2',
+            'org.seleniumhq.selenium:selenium-server:3.4.0'
+    )
+}
