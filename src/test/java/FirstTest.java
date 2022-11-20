@@ -11,6 +11,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.net.URL;
+import java.util.List;
 
 public class FirstTest {
     private AppiumDriver driver;
@@ -44,9 +45,29 @@ public class FirstTest {
     public void checkSearchHasText() {
         assertElementHasText(
                 By.xpath("//*[@resource-id='org.wikipedia:id/search_container']//*[@class='android.widget.TextView']"),
+                "Can't find search input",
                 "Search Wikipedia",
-                "Search doesn't contain expected text",
                 5
+        );
+    }
+
+    @Test
+    public void checkSearchFindSeveralAnswers() {
+        searchText(
+                By.id("org.wikipedia:id/search_container"),
+                "Cant't find search input",
+                "Java",
+                5
+        );
+        int countOfSearchResults = findCountOfSearchResults();
+        Assert.assertTrue("Search found less than 2 results", countOfSearchResults > 2);
+        clearSearchResult(
+                By.id("org.wikipedia:id/search_close_btn"),
+                5
+        );
+        WebDriverWait wait = new WebDriverWait(driver, 5);
+        wait.until(
+                ExpectedConditions.invisibilityOfElementLocated(By.id("org.wikipedia:id/page_list_item_container"))
         );
     }
 
@@ -58,17 +79,48 @@ public class FirstTest {
         );
     }
 
-    private void assertElementHasText(By by, String expectedText, String errorMessage, long timeoutInSecond) {
+    private void assertElementHasText(By by, String errorMessage, String expectedText, long timeoutInSeconds) {
         WebElement element = waitForElementPresented(
                 by,
-                "Element isn't presented",
-                timeoutInSecond
+                errorMessage,
+                timeoutInSeconds
         );
         String elementText = element.getAttribute("text");
         Assert.assertEquals(
-                errorMessage,
                 expectedText,
                 elementText
         );
+    }
+
+    private WebElement searchText(By by, String errorMessage, String searchMessage, long timeoutInSeconds) {
+        WebElement element = waitForElementPresented(
+                by,
+                errorMessage,
+                timeoutInSeconds
+        );
+        element.click();
+        element.sendKeys(searchMessage);
+        return element;
+    }
+
+    private int findCountOfSearchResults() {
+        waitForElementPresented(
+                By.id("org.wikipedia:id/page_list_item_container"),
+                "Search result is empty",
+                5
+        );
+        List<WebElement> elements = driver.findElements(By.id("org.wikipedia:id/page_list_item_container"));
+        int elementsCount = elements.size();
+        return elementsCount;
+    }
+
+    private WebElement clearSearchResult(By by, long timeoutInSeconds) {
+        WebElement element = waitForElementPresented(
+                by,
+                "Can't find close button",
+                timeoutInSeconds
+        );
+        element.click();
+        return element;
     }
 }
