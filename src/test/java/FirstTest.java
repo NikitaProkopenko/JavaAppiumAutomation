@@ -71,6 +71,28 @@ public class FirstTest {
         );
     }
 
+    @Test
+    public void checkSearchResultsHaveKeyWord() {
+        String searchMessage = "Java";
+        searchText(
+                By.id("org.wikipedia:id/search_container"),
+                "Cant't find search input",
+                searchMessage,
+                5
+        );
+        waitForElementPresented(
+                By.id("org.wikipedia:id/page_list_item_title"),
+                "Search result is empty",
+                5
+        );
+        List<WebElement> elements = driver.findElements(By.id("org.wikipedia:id/page_list_item_title"));
+
+        for (WebElement element : elements) {
+            Assert.assertTrue("Result doesn't containt search message", element.getText().contains(searchMessage));
+        }
+
+    }
+
     private WebElement waitForElementPresented(By by, String errorMessage, long timeoutInSeconds) {
         WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);
         wait.withMessage(errorMessage + "\n");
