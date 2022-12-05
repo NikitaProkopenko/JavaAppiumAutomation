@@ -1,10 +1,12 @@
 import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.AndroidDriver;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -61,8 +63,9 @@ public class FirstTest {
         );
         int countOfSearchResults = findCountOfSearchResults();
         Assert.assertTrue("Search found less than 2 results", countOfSearchResults > 2);
-        clearSearchResult(
+        clickOnElement(
                 By.id("org.wikipedia:id/search_close_btn"),
+                "Can't find close button",
                 5
         );
         WebDriverWait wait = new WebDriverWait(driver, 5);
@@ -91,6 +94,52 @@ public class FirstTest {
             Assert.assertTrue("Result doesn't containt search message", element.getText().contains(searchMessage));
         }
 
+    }
+
+    @Test
+    public void checkArticleSaving() {
+        String searchMessage = "Java";
+        searchText(
+                By.id("org.wikipedia:id/search_container"),
+                "Cant't find search input",
+                searchMessage,
+                5
+        );
+        waitForElementPresented(
+                By.id("org.wikipedia:id/page_list_item_title"),
+                "Search result is empty",
+                5
+        );
+        clickOnElement(
+                By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_title'][@text='Java']"),
+                "Can't click on article",
+                5
+        );
+        saveToReadingList(
+                By.xpath("//*[@text='Java']")
+        );
+        searchText(
+                By.id("org.wikipedia:id/search_container"),
+                "Cant't find search input",
+                searchMessage,
+                5
+        );
+        waitForElementPresented(
+                By.id("org.wikipedia:id/page_list_item_title"),
+                "Search result is empty",
+                5
+        );
+        clickOnElement(
+                By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_title'][@text='JavaScript']"),
+                "Can't click on article",
+                5
+        );
+        saveToExistingReadingList(
+                By.xpath("//*[@text='JavaScript']")
+        );
+        openReadingList();
+        deleteFromReadingListBySwipe("JavaScript");
+        checkArticleExistInReadingList("Java");
     }
 
     private WebElement waitForElementPresented(By by, String errorMessage, long timeoutInSeconds) {
@@ -136,13 +185,125 @@ public class FirstTest {
         return elementsCount;
     }
 
-    private WebElement clearSearchResult(By by, long timeoutInSeconds) {
+    private WebElement clickOnElement(By by, String errorMessage, long timeoutInSeconds) {
         WebElement element = waitForElementPresented(
                 by,
-                "Can't find close button",
+                errorMessage,
                 timeoutInSeconds
         );
         element.click();
         return element;
+    }
+
+    private void closeArticle() {
+        clickOnElement(
+                By.xpath("//android.widget.ImageButton[@content-desc='Navigate up']"),
+                "Can't find close button",
+                5
+        );
+    }
+
+    private void saveToReadingList(By by) {
+        waitForElementPresented(
+                by,
+                "Article isn't loaded",
+                5);
+        clickOnElement(
+                By.xpath("//*[@resource-id='org.wikipedia:id/page_toolbar']//*[@content-desc='More options']"),
+                "Can't find more options button",
+                5
+        );
+        clickOnElement(
+                By.xpath("//*[@instance=2][@text='Add to reading list']"),
+                "Can't click to 'Add to reading list'",
+                5
+        );
+        clickOnElement(
+                By.id("org.wikipedia:id/onboarding_button"),
+                "Can't click to 'GOT IT' button",
+                5
+        );
+        createTestReadingList();
+        closeArticle();
+    }
+
+    private void saveToExistingReadingList(By by) {
+        waitForElementPresented(
+                by,
+                "Article isn't loaded",
+                5);
+        clickOnElement(
+                By.xpath("//*[@resource-id='org.wikipedia:id/page_toolbar']//*[@content-desc='More options']"),
+                "Can't find more options button",
+                5
+        );
+        clickOnElement(
+                By.xpath("//*[@instance=2][@text='Add to reading list']"),
+                "Can't click to 'Add to reading list'",
+                5
+        );
+        clickOnElement(
+                By.xpath("//*[@resource-id='org.wikipedia:id/item_container']"),
+                "Can't click to existing reading list",
+                5
+        );
+        closeArticle();
+    }
+
+    private void createTestReadingList() {
+        waitForElementPresented(
+                By.id("org.wikipedia:id/text_input"),
+                "Can't find input for creating title for reading list",
+                5
+        );
+
+        clickOnElement(
+                By.id("android:id/button1"),
+                "Can't press OK button for creating reading list",
+                5
+        );
+    }
+
+    private void openReadingList() {
+        clickOnElement(
+                By.xpath("//*[@content-desc='My lists']"),
+                "Can't open Reading list page",
+                5
+        );
+        clickOnElement(
+                By.xpath("//*[@text='My reading list']"),
+                "Can't open saved Reading list",
+                5
+        );
+    }
+
+    private void deleteFromReadingListBySwipe(String articleTitle) {
+        WebElement element = waitForElementPresented(
+                By.xpath(String.format("//*[@resource-id='org.wikipedia:id/page_list_item_title'][@text=\'%s\']", articleTitle)),
+                "Can't find article in Reading list",
+                5);
+
+        int y = element.getLocation().getY();
+        swipeLeft(3000, y);
+    }
+
+    private void swipeLeft(int timeOfSwipe, int y) {
+        TouchAction action = new TouchAction(driver);
+        Dimension size = driver.manage().window().getSize();
+        int startX = (int ) (size.width * 0.8);
+        int endX = (int) (size.width * 0.2);
+        action.press(startX, y).waitAction(timeOfSwipe).moveTo(endX, y).release().perform();
+    }
+
+    private void checkArticleExistInReadingList(String articleTitle) {
+        WebElement element = waitForElementPresented(
+                By.xpath(String.format("//*[@resource-id='org.wikipedia:id/page_list_item_title'][@text=\'%s\']", articleTitle)),
+                "Can't find article in Reading list",
+                5);
+        element.click();
+        waitForElementPresented(
+                By.xpath(String.format("//*[@resource-id='org.wikipedia:id/view_page_title_text'][@text=\'%s\']", articleTitle)),
+                "Article title doesn't equal title in Reading list",
+                5);
     }
 }
