@@ -1,3 +1,5 @@
+import static org.openqa.selenium.ScreenOrientation.PORTRAIT;
+
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.AndroidDriver;
@@ -7,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.ScreenOrientation;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -31,6 +34,10 @@ public class FirstTest {
         capabilities.setCapability("app", "/Users/nikitaprokopenko/repo/JavaAppiumAutomation/apks/org.wikipedia.apk");
 
         driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"), capabilities);
+
+        if (driver.getOrientation() != PORTRAIT) {
+            driver.rotate(ScreenOrientation.PORTRAIT);
+        }
     }
 
     @After
@@ -55,6 +62,7 @@ public class FirstTest {
 
     @Test
     public void checkSearchFindSeveralAnswers() {
+        driver.rotate(ScreenOrientation.LANDSCAPE);
         searchText(
                 By.id("org.wikipedia:id/search_container"),
                 "Cant't find search input",
