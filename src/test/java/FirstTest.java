@@ -142,6 +142,28 @@ public class FirstTest {
         checkArticleExistInReadingList("Java");
     }
 
+    @Test
+    public void checkArticleHasTitle() {
+        String searchMessage = "Java";
+        searchText(
+                By.id("org.wikipedia:id/search_container"),
+                "Cant't find search input",
+                searchMessage,
+                5
+        );
+        waitForElementPresented(
+                By.id("org.wikipedia:id/page_list_item_title"),
+                "Search result is empty",
+                5
+        );
+        clickOnElement(
+                By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_title'][@text='Java']"),
+                "Can't click on article",
+                5
+        );
+        assertElementPresent(By.xpath("//*[@resource-id='org.wikipedia:id/view_page_title_text'][@text='Java']"));
+    }
+
     private WebElement waitForElementPresented(By by, String errorMessage, long timeoutInSeconds) {
         WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);
         wait.withMessage(errorMessage + "\n");
@@ -161,6 +183,11 @@ public class FirstTest {
                 expectedText,
                 elementText
         );
+    }
+
+    private void assertElementPresent(By by) {
+        WebElement element = driver.findElement(by);
+        Assert.assertTrue("Title isn't shown in article", element.isDisplayed());
     }
 
     private WebElement searchText(By by, String errorMessage, String searchMessage, long timeoutInSeconds) {
