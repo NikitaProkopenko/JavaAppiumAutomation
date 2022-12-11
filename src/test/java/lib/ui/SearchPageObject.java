@@ -16,11 +16,18 @@ public class SearchPageObject extends MainPageObject {
             SEARCH_INPUT_TEXT = "Search Wikipedia",
             SEARCH_LIST_ITEM = "org.wikipedia:id/page_list_item_container",
             SEARCH_CLOSE_BUTTON = "org.wikipedia:id/search_close_btn",
-            SEARCH_LIST_ITEM_TITLE = "org.wikipedia:id/page_list_item_title";
+            SEARCH_LIST_ITEM_TITLE = "org.wikipedia:id/page_list_item_title",
+            SEARCH_RESULT_BY_SUBSTRING_TPL = "//*[@resource-id='org.wikipedia:id/page_list_item_container']//*[@text='{SUBSTRING}']";
 
     public SearchPageObject(AppiumDriver driver) {
         super(driver);
     }
+
+    /*TEMPLATES METHODS*/
+    private static String getResultSearchElement(String substring) {
+        return SEARCH_RESULT_BY_SUBSTRING_TPL.replace("{SUBSTRING}", substring);
+    }
+    /*TEMPLATES METHODS*/
 
     public void initSearchInput() {
         this.assertElementHasText(
@@ -83,8 +90,23 @@ public class SearchPageObject extends MainPageObject {
 
     public void openArticleWithTitle(String title) {
         this.clickOnElement(
-                By.xpath("//*[@resource-id='org.wikipedia:id/page_list_item_title'][@text='Java']"),
+                By.xpath(String.format("//*[@resource-id='org.wikipedia:id/page_list_item_title'][@text=\'%s\']", title)),
                 "Can't click on article",
+                5
+        );
+    }
+
+    public void waitForElementByTitleAndDescription(String title, String description) {
+        String searchResultDescriptionXpath = getResultSearchElement(description);
+        String searchResultTitleXpath = getResultSearchElement(title);
+        this.waitForElementPresented(
+                By.xpath(searchResultTitleXpath),
+                "Can't find title search result with substring " + title,
+                5
+        );
+        this.waitForElementPresented(
+                By.xpath(searchResultDescriptionXpath),
+                "Can't find description search result with substring " + description,
                 5
         );
     }

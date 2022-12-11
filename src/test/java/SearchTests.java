@@ -34,4 +34,15 @@ public class SearchTests extends CoreTestCase {
             Assert.assertTrue("Result doesn't containt search message", element.getText().contains(searchMessage));
         }
     }
+
+    @Test
+    public void testSearchResultsByTitleAndDescription() {
+        SearchPageObject SearchPageObject = new SearchPageObject(driver);
+        String searchMessage = "Java";
+
+        SearchPageObject.searchText(searchMessage);
+        SearchPageObject.waitForElementByTitleAndDescription("Java", "Island of Indonesia, Southeast Asia");
+        SearchPageObject.waitForElementByTitleAndDescription("JavaScript", "High-level programming language");
+        SearchPageObject.waitForElementByTitleAndDescription("Java (programming language)", "Object-oriented programming language");
+    }
 }
